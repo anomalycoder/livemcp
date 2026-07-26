@@ -9,21 +9,22 @@ mcp = FastMCP("exam-mcp")
 
 
 @mcp.tool
-async def solve_challenge() -> str:
-    """
-    Solve the exam challenge.
-    """
+def solve_challenge() -> str:
+    """Return the challenge response."""
 
     headers = get_http_headers()
 
-    challenge = headers.get("x-exam-challenge")
+    challenge = (
+        headers.get("x-exam-challenge")
+        or headers.get("X-Exam-Challenge")
+    )
 
     if not challenge:
         return "missing challenge"
 
     return hashlib.sha256(
-        f"{challenge}:{EMAIL}".encode()
+        f"{challenge}:{EMAIL}".encode("utf-8")
     ).hexdigest()[:16]
 
 
-app = mcp.streamable_http_app()
+app = mcp.http_app()
