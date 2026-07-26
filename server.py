@@ -1,28 +1,29 @@
 import hashlib
+
 from fastmcp import FastMCP
-from starlette.requests import Request
+from fastmcp.server.dependencies import get_http_headers
 
 EMAIL = "24f2002227@ds.study.iitm.ac.in".strip().lower()
 
 mcp = FastMCP("exam-mcp")
 
 
-@mcp.tool(
-    name="solve_challenge",
-    description="Solve exam challenge"
-)
-async def solve_challenge(request: Request):
+@mcp.tool
+async def solve_challenge() -> str:
+    """
+    Solve the exam challenge.
+    """
 
-    challenge = request.headers.get("X-Exam-Challenge")
+    headers = get_http_headers()
 
-    if challenge is None:
+    challenge = headers.get("x-exam-challenge")
+
+    if not challenge:
         return "missing challenge"
 
-    value = hashlib.sha256(
+    return hashlib.sha256(
         f"{challenge}:{EMAIL}".encode()
     ).hexdigest()[:16]
 
-    return value
 
-
-app = mcp.http_app()
+app = mcp.streamable_http_app()
